@@ -1,9 +1,19 @@
-FROM node:24-bookworm-slim
+FROM node:24-bookworm-slim AS dependencies
 
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+RUN apt-get update \
+  && apt-get install --yes --no-install-recommends python3 make g++ \
+  && rm -rf /var/lib/apt/lists/* \
+  && npm ci --omit=dev --build-from-source=sqlite3
+
+FROM node:24-bookworm-slim
+
+WORKDIR /app
+
+COPY --from=dependencies /app/node_modules ./node_modules
+COPY package.json package-lock.json ./
 
 COPY src ./src
 COPY knexfile.js ./
