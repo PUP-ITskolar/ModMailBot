@@ -4,7 +4,6 @@ const transliterate = require("transliteration");
 const moment = require("moment");
 const uuid = require("uuid");
 const humanizeDuration = require("humanize-duration");
-const crypto = require("crypto");
 
 const bot = require("../bot");
 const knex = require("../knex");
@@ -158,15 +157,12 @@ async function createNewThreadForUser(user, opts = {}) {
       }
     }
 
-    // Use the user's name for the thread channel's name
-    // Channel names are particularly picky about what characters they allow, so we gotta do some clean-up
-    let cleanName = transliterate.slugify(user.username);
-    if (cleanName === "") cleanName = "unknown";
-
-    let channelName = cleanName;
-
-    if (config.anonymizeChannelName) {
-      channelName = crypto.createHash("md5").update(channelName + Date.now()).digest("hex").slice(0, 12);
+    let channelName;
+    if (config.anonymizeUser || config.anonymizeChannelName) {
+      channelName = uuid.v4().replace(/-/g, "").slice(0, 12);
+    } else {
+      // Channel names are particularly picky about what characters they allow, so we gotta do some clean-up
+      channelName = transliterate.slugify(user.username) || "unknown";
     }
 
     opts.channelName = channelName;
@@ -232,7 +228,7 @@ async function createNewThreadForUser(user, opts = {}) {
     const newThreadId = await createThreadInDB({
       status: THREAD_STATUS.OPEN,
       user_id: user.id,
-      user_name: user.username,
+      user_name: config.anonymizeUser ? "Anonymous user" : user.username,
       channel_id: createdChannel.id,
       next_message_number: 1,
       created_at: moment.utc().format("YYYY-MM-DD HH:mm:ss")
@@ -252,7 +248,7 @@ async function createNewThreadForUser(user, opts = {}) {
           : utils.getInboxMentionAllowedMentions();
 
         await newThread.postNonLogMessage({
-          content: `${staffMention}New modmail thread (${newThread.user_name})`,
+          content: `${staffMention}New modmail thread`,
           allowedMentions,
         });
       }
@@ -266,9 +262,9 @@ async function createNewThreadForUser(user, opts = {}) {
     infoHeaderItems.push(`ACCOUNT AGE **${accountAge}**`);
 
     // User id (and mention, if enabled)
-    if (config.mentionUserInThreadHeader) {
+    if (! config.anonymizeUser && config.mentionUserInThreadHeader) {
       infoHeaderItems.push(`ID **${user.id}** (<@!${user.id}>)`);
-    } else {
+    } else if (! config.anonymizeUser) {
       infoHeaderItems.push(`ID **${user.id}**`);
     }
 
@@ -276,6 +272,7 @@ async function createNewThreadForUser(user, opts = {}) {
 
     // Guild member info
     for (const [guildId, guildData] of userGuildData.entries()) {
+      if (config.anonymizeUser) break;
       const {nickname, joinDate} = getHeaderGuildInfo(guildData.member);
       const headerItems = [
         `NICKNAME **${utils.escapeMarkdown(nickname)}**`,
@@ -317,7 +314,7 @@ async function createNewThreadForUser(user, opts = {}) {
     infoHeader += "\n────────────────";
 
     const { message: threadHeaderMessage } = await newThread.postSystemMessage(infoHeader, {
-      allowedMentions: config.mentionUserInThreadHeader ? { users: [user.id] } : undefined,
+      allowedMentions: ! config.anonymizeUser && config.mentionUserInThreadHeader ? { users: [user.id] } : undefined,
     });
 
     if (config.pinThreadHeader) {

@@ -14,3 +14,10 @@ The following assumes basic knowledge about using command line tools.
 ## Process managers
 If you're using a process manager like PM2, the command to run is `npm start`.
 A PM2 process file, `modmailbot-pm2.json`, is included in the repository.
+
+## Docker
+
+1. Copy `config.example.ini` to `config.ini` and set the required values.
+2. Run `docker compose up -d --build`.
+
+The Compose setup persists the database, logs, and attachments in the local `db`, `logs`, and `attachments` directories. Set `MODMAIL_PORT` in `.env` to publish a different host port.

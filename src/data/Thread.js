@@ -118,10 +118,10 @@ class Thread {
     } catch (e) {
       // Channel not found
       if (e.code === 10003) {
-        console.log(`[INFO] Failed to send message to thread channel for ${this.user_name} because the channel no longer exists. Auto-closing the thread.`);
+        console.log("[INFO] Failed to send message to thread channel because the channel no longer exists. Auto-closing the thread.");
         this.close(true);
       } else if (e.code === 240000) {
-        console.log(`[INFO] Failed to send message to thread channel for ${this.user_name} because the message contains a link blocked by the harmful links filter`);
+        console.log("[INFO] Failed to send message to thread channel because the message contains a link blocked by the harmful links filter");
         await bot.createMessage(this.channel_id, "Failed to send message to thread channel because the message contains a link blocked by the harmful links filter");
       } else {
         throw e;
@@ -543,7 +543,7 @@ class Thread {
     let threadMessage = new ThreadMessage({
       message_type: THREAD_MESSAGE_TYPE.FROM_USER,
       user_id: this.user_id,
-      user_name: config.useDisplaynames ? msg.author.globalName || msg.author.username : msg.author.username,
+      user_name: config.anonymizeUser ? "Anonymous user" : (config.useDisplaynames ? msg.author.globalName || msg.author.username : msg.author.username),
       body: messageContent,
       metadata: {
         embeds: sanitiseEmbedsForMetadata(msg.embeds),
@@ -601,7 +601,7 @@ class Thread {
       const mentionsStr = ids.map(id => `<@!${id}> `).join("");
 
       await this.deleteAlerts();
-      await this.postSystemMessage(`${mentionsStr}New message from ${this.user_name}`, {
+      await this.postSystemMessage(`${mentionsStr}New message from ${config.anonymizeUser ? "the user" : this.user_name}`, {
         allowedMentions: {
           users: ids,
         },

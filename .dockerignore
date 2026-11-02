@@ -1,0 +1,11 @@
+.git
+.gitignore
+node_modules
+config.*
+db
+logs
+attachments
+docs
+screenshots
+start.bat
+modmailbot-pm2.json

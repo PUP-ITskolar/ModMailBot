@@ -90,7 +90,7 @@ If enabled, allows you to move threads between categories using `!move <category
 If enabled, users can use the close command to close threads by themselves from their DMs with the bot
 
 #### allowStaffDelete
-**Default:** `on`  
+**Default:** `on`
 If enabled, staff members can delete their own replies in modmail threads with `!delete`
 
 #### allowStaffEdit
@@ -144,6 +144,10 @@ If enabled, all replies (including regular `!reply` and snippets) are anonymous
 #### anonymizeChannelName
 **Default:** `off`  
 If enabled, channel names will be the user's name salted with the current time, then hashed to protect the user's privacy
+
+#### anonymizeUser
+**Default:** `on`
+Hides the contacting user's name and ID from thread channels and generated logs. The bot retains the ID internally so it can send replies and apply blocks. User-provided message content and existing saved attachment logs are not rewritten; legacy and system entries are omitted from generated logs to avoid exposing historical identities.
 
 #### attachmentStorage
 **Default:** `original`  

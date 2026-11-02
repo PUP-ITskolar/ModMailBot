@@ -3,15 +3,23 @@ const utils = require("../utils");
 
 module.exports = ({ bot, knex, config, commands }) => {
   commands.addInboxThreadCommand("id", [], async (msg, args, thread) => {
-    thread.postSystemMessage(thread.user_id);
+    thread.postSystemMessage(config.anonymizeUser ? "User identity is hidden." : thread.user_id);
   }, { allowSuspended: true });
 
   commands.addInboxThreadCommand("dm_channel_id", [], async (msg, args, thread) => {
+    if (config.anonymizeUser) {
+      thread.postSystemMessage("User identity is hidden.");
+      return;
+    }
     const dmChannel = await thread.getDMChannel();
     thread.postSystemMessage(dmChannel.id);
   }, { allowSuspended: true });
 
   commands.addInboxThreadCommand("message", "<messageNumber:number>", async (msg, args, thread) => {
+    if (config.anonymizeUser) {
+      thread.postSystemMessage("User identity is hidden.");
+      return;
+    }
     /** @type {ThreadMessage} */
     const threadMessage = await thread.findThreadMessageByMessageNumber(args.messageNumber);
     if (! threadMessage) {

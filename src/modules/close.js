@@ -76,7 +76,7 @@ module.exports = ({ bot, knex, config, commands }) => {
 
       await thread.close(false, thread.scheduled_close_silent);
 
-      await sendCloseNotification(thread, `Modmail thread #${thread.thread_number} with ${thread.user_name} (${thread.user_id}) was closed as scheduled by ${thread.scheduled_close_name}`);
+      await sendCloseNotification(thread, `Modmail thread #${thread.thread_number} was closed as scheduled by ${thread.scheduled_close_name}`);
     }
   }
 
@@ -177,7 +177,7 @@ module.exports = ({ bot, knex, config, commands }) => {
 
     await thread.close(suppressSystemMessages, silentClose);
 
-    await sendCloseNotification(thread, `Modmail thread #${thread.thread_number} with ${thread.user_name} (${thread.user_id}) was closed by ${closedBy} (${msg.author.id})`);
+    await sendCloseNotification(thread, `Modmail thread #${thread.thread_number} was closed by ${closedBy} (${msg.author.id})`);
   }, {
     options: [
       { name: "silent", shortcut: "s", isSwitch: true },
@@ -193,7 +193,7 @@ module.exports = ({ bot, knex, config, commands }) => {
     const thread = await threads.findOpenThreadByChannelId(channel.id);
     if (! thread) return;
 
-    console.log(`[INFO] Auto-closing thread with ${thread.user_name} because the channel was deleted`);
+    console.log("[INFO] Auto-closing thread because the channel was deleted");
     if (config.closeMessage) {
       const closeMessage = utils.readMultilineConfigValue(config.closeMessage);
       await thread.sendSystemMessageToUser(closeMessage).catch(() => {});
@@ -201,6 +201,6 @@ module.exports = ({ bot, knex, config, commands }) => {
 
     await thread.close(true);
 
-    await sendCloseNotification(thread, `Modmail thread #${thread.thread_number} with ${thread.user_name} (${thread.user_id}) was closed automatically because the channel was deleted`);
+    await sendCloseNotification(thread, `Modmail thread #${thread.thread_number} was closed automatically because the channel was deleted`);
   });
 };

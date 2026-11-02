@@ -132,7 +132,8 @@ const defaultFormatters = {
   },
 
   formatUserReplyThreadMessage(threadMessage) {
-    let result = `**${threadMessage.user_name}:** ${threadMessage.body}`;
+    const userName = config.anonymizeUser ? "Anonymous user" : threadMessage.user_name;
+    let result = `**${userName}:** ${threadMessage.body}`;
 
     for (const link of threadMessage.attachments) {
       result += `\n\n${link}`;
@@ -211,6 +212,13 @@ const defaultFormatters = {
   },
 
   formatLog(thread, threadMessages, opts = {}) {
+    if (config.anonymizeUser) {
+      // Older system entries and legacy transcript blobs can contain a user's identity.
+      threadMessages = threadMessages.filter(message => {
+        return message.message_type !== THREAD_MESSAGE_TYPE.LEGACY && message.message_type !== THREAD_MESSAGE_TYPE.SYSTEM;
+      });
+    }
+
     if (opts.simple) {
       threadMessages = threadMessages.filter(message => {
         return (
@@ -230,7 +238,7 @@ const defaultFormatters = {
 
       let line = `[${moment.utc(message.created_at).format("YYYY-MM-DD HH:mm:ss")}]`;
 
-      if (opts.verbose) {
+      if (opts.verbose && ! config.anonymizeUser) {
         if (message.dm_channel_id) {
           line += ` [DM CHA ${message.dm_channel_id}]`;
         }
@@ -241,7 +249,7 @@ const defaultFormatters = {
       }
 
       if (message.message_type === THREAD_MESSAGE_TYPE.FROM_USER) {
-        line += ` [FROM USER] [${message.user_name}] ${message.body}`;
+        line += ` [FROM USER] [${config.anonymizeUser ? "Anonymous user" : message.user_name}] ${message.body}`;
       } else if (message.message_type === THREAD_MESSAGE_TYPE.TO_USER) {
         if (opts.verbose) {
           line += ` [TO USER] [${message.message_number || "0"}] [${message.user_name}]`;
@@ -295,7 +303,8 @@ const defaultFormatters = {
     });
 
     const openedAt = moment(thread.created_at).format("YYYY-MM-DD HH:mm:ss");
-    const header = `# Modmail thread #${thread.thread_number} with ${thread.user_name} (${thread.user_id}) started at ${openedAt}. All times are in UTC+0.`;
+    const userLabel = config.anonymizeUser ? "an anonymous user" : `${thread.user_name} (${thread.user_id})`;
+    const header = `# Modmail thread #${thread.thread_number} with ${userLabel} started at ${openedAt}. All times are in UTC+0.`;
 
     const fullResult = header + "\n\n" + lines.join("\n");
 

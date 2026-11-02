@@ -54,9 +54,10 @@ module.exports = ({ bot, knex, config, commands, hooks }) => {
       return `\`#${userThread.thread_number}\` \`${formattedDate}\`: ${formattedLogUrl}`;
     }));
 
+    const userLabel = config.anonymizeUser ? "the anonymous user" : `<@${userId}>`;
     let message = isPaginated
-      ? `**Log files for <@${userId}>** (page **${page}/${maxPage}**, showing logs **${start + 1}-${end}/${totalUserThreads}**):`
-      : `**Log files for <@${userId}>:**`;
+      ? `**Log files for ${userLabel}** (page **${page}/${maxPage}**, showing logs **${start + 1}-${end}/${totalUserThreads}**):`
+      : `**Log files for ${userLabel}:**`;
 
     message += `\n${threadLines.join("\n")}`;
 
@@ -64,7 +65,7 @@ module.exports = ({ bot, knex, config, commands, hooks }) => {
       message += "\nTo view more, add a page number to the end of the command";
     }
 
-    if (threadLines.length === 0) message = `**There are no log files for <@${userId}>**`;
+    if (threadLines.length === 0) message = `**There are no log files for ${userLabel}**`;
 
     // Send the list of logs in chunks of 15 lines per message
     const lines = message.split("\n");

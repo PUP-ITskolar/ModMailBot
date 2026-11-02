@@ -145,6 +145,10 @@
       "$ref": "#/definitions/customBoolean",
       "default": false
     },
+    "anonymizeUser": {
+      "$ref": "#/definitions/customBoolean",
+      "default": true
+    },
     "ignoreAccidentalThreads": {
       "$ref": "#/definitions/customBoolean",
       "default": false

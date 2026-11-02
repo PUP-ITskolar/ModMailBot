@@ -33,6 +33,8 @@ The bot stores full transcripts of modmail threads. These transcripts include:
 * User ID, username, nickname, and display name of the contacting or contacted user
 * User ID, username, nickname, and display name of any moderators participating in the thread
 
+When `anonymizeUser` is enabled (the default), the contacting user's Discord ID is retained internally only to deliver messages and enforce blocks. Their name and ID are omitted from new thread displays and generated logs.
+
 In addition, the bot stores:
 * User ID and username of users blocked from contacting the bot
 * User ID of author and target user of notes saved in the bot

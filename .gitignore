@@ -3,6 +3,9 @@
 /node_modules
 /welcome.png
 /update.sh
+/config.ini
+/db/*.sqlite
+/logs/*.txt
 
 # Config files
 /config.*
