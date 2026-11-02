@@ -257,58 +257,58 @@ async function createNewThreadForUser(user, opts = {}) {
     // Post some info to the beginning of the new thread
     const infoHeaderItems = [];
 
-    // Account age
-    const accountAge = humanizeDuration(Date.now() - user.createdAt, {largest: 2, round: true});
-    infoHeaderItems.push(`ACCOUNT AGE **${accountAge}**`);
+    let infoHeader = "";
+    if (! config.anonymizeUser) {
+      const accountAge = humanizeDuration(Date.now() - user.createdAt, {largest: 2, round: true});
+      infoHeaderItems.push(`ACCOUNT AGE **${accountAge}**`);
 
-    // User id (and mention, if enabled)
-    if (! config.anonymizeUser && config.mentionUserInThreadHeader) {
-      infoHeaderItems.push(`ID **${user.id}** (<@!${user.id}>)`);
-    } else if (! config.anonymizeUser) {
-      infoHeaderItems.push(`ID **${user.id}**`);
-    }
+      if (config.mentionUserInThreadHeader) {
+        infoHeaderItems.push(`ID **${user.id}** (<@!${user.id}>)`);
+      } else {
+        infoHeaderItems.push(`ID **${user.id}**`);
+      }
 
-    let infoHeader = infoHeaderItems.join(", ");
+      infoHeader = infoHeaderItems.join(", ");
 
-    // Guild member info
-    for (const [guildId, guildData] of userGuildData.entries()) {
-      if (config.anonymizeUser) break;
-      const {nickname, joinDate} = getHeaderGuildInfo(guildData.member);
-      const headerItems = [
-        `NICKNAME **${utils.escapeMarkdown(nickname)}**`,
-        `JOINED **${joinDate}** ago`
-      ];
+      // Guild member info
+      for (const [guildId, guildData] of userGuildData.entries()) {
+        const {nickname, joinDate} = getHeaderGuildInfo(guildData.member);
+        const headerItems = [
+          `NICKNAME **${utils.escapeMarkdown(nickname)}**`,
+          `JOINED **${joinDate}** ago`
+        ];
 
-      if (guildData.member.voiceState.channelID) {
-        const voiceChannel = guildData.guild.channels.get(guildData.member.voiceState.channelID);
-        if (voiceChannel) {
-          headerItems.push(`VOICE CHANNEL **${utils.escapeMarkdown(voiceChannel.name)}**`);
+        if (guildData.member.voiceState.channelID) {
+          const voiceChannel = guildData.guild.channels.get(guildData.member.voiceState.channelID);
+          if (voiceChannel) {
+            headerItems.push(`VOICE CHANNEL **${utils.escapeMarkdown(voiceChannel.name)}**`);
+          }
+        }
+
+        if (config.rolesInThreadHeader && guildData.member.roles.length) {
+          const roles = guildData.member.roles.map(roleId => guildData.guild.roles.get(roleId)).filter(Boolean);
+          headerItems.push(`ROLES **${roles.map(r => r.name).join(", ")}**`);
+        }
+
+        const headerStr = headerItems.join(", ");
+
+        if (mainGuilds.length === 1) {
+          infoHeader += `\n${headerStr}`;
+        } else {
+          infoHeader += `\n**[${utils.escapeMarkdown(guildData.guild.name)}]** ${headerStr}`;
         }
       }
 
-      if (config.rolesInThreadHeader && guildData.member.roles.length) {
-        const roles = guildData.member.roles.map(roleId => guildData.guild.roles.get(roleId)).filter(Boolean);
-        headerItems.push(`ROLES **${roles.map(r => r.name).join(", ")}**`);
+      // Modmail history / previous logs
+      const userLogCount = await getClosedThreadCountByUserId(user.id);
+      if (userLogCount > 0) {
+        infoHeader += `\n\nThis user has **${userLogCount}** previous modmail threads. Use \`${config.prefix}logs\` to see them.`;
       }
 
-      const headerStr = headerItems.join(", ");
-
-      if (mainGuilds.length === 1) {
-        infoHeader += `\n${headerStr}`;
-      } else {
-        infoHeader += `\n**[${utils.escapeMarkdown(guildData.guild.name)}]** ${headerStr}`;
+      const userNotes = await findNotesByUserId(user.id);
+      if (userNotes.length) {
+        infoHeader += `\n\nThis user has **${userNotes.length}** notes. Use \`${config.prefix}notes\` to see them.`;
       }
-    }
-
-    // Modmail history / previous logs
-    const userLogCount = await getClosedThreadCountByUserId(user.id);
-    if (userLogCount > 0) {
-      infoHeader += `\n\nThis user has **${userLogCount}** previous modmail threads. Use \`${config.prefix}logs\` to see them.`;
-    }
-
-    const userNotes = await findNotesByUserId(user.id);
-    if (userNotes.length) {
-      infoHeader += `\n\nThis user has **${userNotes.length}** notes. Use \`${config.prefix}notes\` to see them.`;
     }
 
     infoHeader += "\n────────────────";

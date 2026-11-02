@@ -6,17 +6,48 @@ const { Routes } = require("discord-api-types/v10");
 module.exports = ({ bot, knex, config, commands }) => {
   if (! config.allowMove) return;
 
-  commands.addInboxThreadCommand("move", "<category:string$>", async (msg, args, thread) => {
-    const searchStr = args.category;
-    const normalizedSearchStr = transliterate.slugify(searchStr);
+  const concernRouting = config.concernRouting;
+  const concernCategoryIds = concernRouting && new Set([
+    concernRouting.officerCategoryId,
+    concernRouting.moderationCategoryId,
+  ]);
+
+  commands.addInboxThreadCommand("move", "[category:string$]", async (msg, args, thread) => {
+    if (! concernRouting
+      || ! concernRouting.officerCategoryId
+      || ! concernRouting.moderationCategoryId
+      || concernCategoryIds.size !== 2) {
+      thread.postSystemMessage("Concern routing must be configured before threads can be moved.");
+      return;
+    }
 
     const channel = await getOrFetchChannel(bot, msg.channel.id);
     const categories = channel.guild.channels.filter(c => {
       // Filter to categories that are not the thread's current parent category
-      return (c instanceof Eris.CategoryChannel) && (c.id !== channel.parentID);
+      return (c instanceof Eris.CategoryChannel)
+        && concernCategoryIds.has(c.id)
+        && (c.id !== channel.parentID);
     });
 
     if (categories.length === 0) return;
+
+    if (! args.category) {
+      const targetCategoryId = channel.parentID === concernRouting.officerCategoryId
+        ? concernRouting.moderationCategoryId
+        : channel.parentID === concernRouting.moderationCategoryId
+          ? concernRouting.officerCategoryId
+          : null;
+      const targetCategory = Array.from(categories).find(category => category.id === targetCategoryId);
+
+      if (! targetCategory) {
+        thread.postSystemMessage("This thread is not in a configured concern category.");
+        return;
+      }
+
+      return moveThread(targetCategory);
+    }
+
+    const normalizedSearchStr = transliterate.slugify(args.category);
 
     // See if any category name contains a part of the search string
     const containsRankings = categories.map(cat => {
@@ -48,36 +79,40 @@ module.exports = ({ bot, knex, config, commands }) => {
 
     const targetCategory = containsRankings[0][0];
 
-    try {
-      await bot.editChannel(thread.channel_id, {
-        parentID: targetCategory.id
-      });
-    } catch (e) {
-      thread.postSystemMessage(`Failed to move thread: ${e.message}`);
-      return;
-    }
+    return moveThread(targetCategory);
 
-    // If enabled, sync thread channel permissions with the category it's moved to
-    if (config.syncPermissionsOnMove) {
-      const newPerms = Array.from(targetCategory.permissionOverwrites.map(ow => {
-        return {
-          id: ow.id,
-          type: ow.type,
-          allow: ow.allow,
-          deny: ow.deny
-        };
-      }));
-
+    async function moveThread(targetCategory) {
       try {
-        await bot.requestHandler.request("PATCH", Routes.channel(thread.channel_id), true, {
-          permission_overwrites: newPerms
+        await bot.editChannel(thread.channel_id, {
+          parentID: targetCategory.id
         });
       } catch (e) {
-        thread.postSystemMessage(`Thread moved to ${targetCategory.name.toUpperCase()}, but failed to sync permissions: ${e.message}`);
+        thread.postSystemMessage(`Failed to move thread: ${e.message}`);
         return;
       }
-    }
 
-    thread.postSystemMessage(`Thread moved to ${targetCategory.name.toUpperCase()}`);
+      // If enabled, sync thread channel permissions with the category it's moved to
+      if (config.syncPermissionsOnMove) {
+        const newPerms = Array.from(targetCategory.permissionOverwrites.map(ow => {
+          return {
+            id: ow.id,
+            type: ow.type,
+            allow: ow.allow,
+            deny: ow.deny
+          };
+        }));
+
+        try {
+          await bot.requestHandler.request("PATCH", Routes.channel(thread.channel_id), true, {
+            permission_overwrites: newPerms
+          });
+        } catch (e) {
+          thread.postSystemMessage(`Thread moved to ${targetCategory.name.toUpperCase()}, but failed to sync permissions: ${e.message}`);
+          return;
+        }
+      }
+
+      thread.postSystemMessage(`Thread moved to ${targetCategory.name.toUpperCase()}`);
+    }
   });
 };

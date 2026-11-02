@@ -83,7 +83,7 @@ See `requiredAccountAge` below
 
 #### allowMove
 **Default:** `off`  
-If enabled, allows you to move threads between categories using `!move <category>`
+If enabled, allows you to move threads between the configured officer and moderation categories using `!move <category>`. Requires [`concernRouting`](#concernrouting) to be configured.
 
 #### allowUserClose
 **Default:** `off`  
@@ -147,7 +147,7 @@ If enabled, channel names will be the user's name salted with the current time, 
 
 #### anonymizeUser
 **Default:** `on`
-Hides the contacting user's name and ID from thread channels and generated logs. The bot retains the ID internally so it can send replies and apply blocks. User-provided message content and existing saved attachment logs are not rewritten; legacy and system entries are omitted from generated logs to avoid exposing historical identities.
+Hides the contacting user's name, ID, account age, membership details, and history metadata from thread channels and generated logs. The bot retains the ID internally so it can send replies and apply blocks. User-provided message content and existing saved attachment logs are not rewritten; legacy and system entries are omitted from generated logs to avoid exposing historical identities.
 
 #### attachmentStorage
 **Default:** `original`  
@@ -195,6 +195,19 @@ categoryAutomation.newThreadFromServer.94882524378968064 = 360863035130249235
 # When the user is from the server ID 541484311354933258, their modmail thread will be placed in the category ID 542780020972716042
 categoryAutomation.newThreadFromServer.541484311354933258 = 542780020972716042
 ```
+
+#### concernRouting
+
+Optional two-way routing for new DMs. When both category IDs are configured, the bot first asks the user to reply `officer` for an officer concern. Any other reply opens a moderation concern, which is the default route.
+
+```ini
+concernRouting.officerCategoryId = OFFICER_CATEGORY_ID
+concernRouting.officerMentionRole = OFFICER_ROLE_ID
+concernRouting.moderationCategoryId = MODERATION_CATEGORY_ID
+concernRouting.moderationMentionRole = MODERATION_ROLE_ID
+```
+
+Set each category's Discord permissions so only its corresponding staff role (and bot administrators) can view its threads.
 
 #### closeMessage
 **Default:** *None*  

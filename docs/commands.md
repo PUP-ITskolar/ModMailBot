@@ -5,6 +5,15 @@
 * [Anywhere on the inbox server](#anywhere-on-the-inbox-server)
 * [Snippets (canned messages)](#snippets-canned-messages)
 
+## Anonymous mode
+
+When `anonymizeUser` is enabled, the following commands change behavior to avoid exposing the contacting user's identity:
+
+* `!id`, `!dm_channel_id`, and `!message` do not reveal user or DM identifiers.
+* `!loglink -v` omits DM channel and message IDs, and `!logs` labels results as anonymous.
+* `!notes`, `!block`, and `!unblock` still work during an open thread, but their user-specific data is removed automatically when the thread closes.
+* `!anonymize` is retained only for anonymizing closed threads that predate automatic anonymization.
+
 ## Inside a Modmail thread
 These commands can only be used inside a Modmail thread's channel on the inbox server.
 
@@ -53,9 +62,9 @@ Block the user from using Modmail for a specified time.
 ### `!unblock`
 Unblock the user, allowing them to use Modmail again.
 
-### `!move <category>`
-Move the Modmail thread to a different category.
-Requires `allowMove` to be enabled in the bot's settings.
+### `!move [category]`
+Move the Modmail thread between the configured officer and moderation categories. With no category, it moves to the opposite concern category.
+Requires `allowMove` and `concernRouting` to be enabled in the bot's settings.
 
 ### `!suspend`
 Suspend the thread.
@@ -96,6 +105,9 @@ Get a link to the open Modmail thread's log, only showing messages to/from the u
 ### `!loglink -v`
 Get a link to the open Modmail thread's log, showing extra details about channel and message IDs between the bot and the user.
 This is mainly useful when reporting messages to Discord's Trust & Safety team.
+
+### `!anonymize <threadId> confirm`
+Manually anonymize an existing closed thread. New threads are anonymized automatically when they close. Anonymization removes the user ID, DM identifiers, identity-bearing system entries, associated notes, and block state. The thread can no longer be found through that user's history.
 
 ### `!id`
 Prints the user's ID.

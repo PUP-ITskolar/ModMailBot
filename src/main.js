@@ -130,6 +130,12 @@ function initStatus() {
 }
 
 function initBaseMessageHandlers() {
+  const pendingConcernRouting = new Map();
+  const concernRouting = config.concernRouting;
+  const hasConcernRouting = concernRouting
+    && concernRouting.officerCategoryId
+    && concernRouting.moderationCategoryId;
+
   /**
    * When a moderator posts in a modmail thread...
    * 1) If alwaysReply is enabled, reply to the user
@@ -179,20 +185,43 @@ function initBaseMessageHandlers() {
     messageQueue.add(async () => {
       let thread = await threads.findOpenThreadByUserId(msg.author.id);
       const createNewThread = (thread == null);
+      let skipCurrentMessage = false;
 
       // New thread
       if (createNewThread) {
+        if (hasConcernRouting && ! pendingConcernRouting.has(msg.author.id)) {
+          pendingConcernRouting.set(msg.author.id, msg);
+          await channel.createMessage("To route your concern, reply `officer` for an officer concern. Any other reply will be routed to the moderation team.");
+          return;
+        }
+
         // Ignore messages that shouldn't usually open new threads, such as "ok", "thanks", etc.
         if (config.ignoreAccidentalThreads && msg.content && ACCIDENTAL_THREAD_MESSAGES.includes(msg.content.trim().toLowerCase())) return;
 
+        const routeResponse = (msg.content || "").trim();
+        const isOfficerConcern = hasConcernRouting && /^officer(?: concern)?$/i.test(routeResponse);
+        const isRouteSelection = /^(?:officer(?: concern)?|moderation(?: concern)?)$/i.test(routeResponse);
+        const route = isOfficerConcern
+          ? { categoryId: concernRouting.officerCategoryId, mentionRole: concernRouting.officerMentionRole }
+          : hasConcernRouting
+            ? { categoryId: concernRouting.moderationCategoryId, mentionRole: concernRouting.moderationMentionRole }
+            : {};
+        const initialMessage = pendingConcernRouting.get(msg.author.id);
+        pendingConcernRouting.delete(msg.author.id);
+
         thread = await threads.createNewThreadForUser(msg.author, {
           source: "dm",
-          message: msg,
+          message: initialMessage || msg,
+          ...route,
         });
+        if (thread && initialMessage) {
+          await thread.receiveUserReply(initialMessage);
+          skipCurrentMessage = isRouteSelection;
+        }
       }
 
       if (thread) {
-        await thread.receiveUserReply(msg);
+        if (! skipCurrentMessage) await thread.receiveUserReply(msg);
 
         if (createNewThread) {
           // Send auto-reply to the user
@@ -379,6 +408,7 @@ function getBasePlugins() {
     "file:./src/modules/roles",
     "file:./src/modules/notes",
     "file:./src/modules/dmReactions",
+    "file:./src/modules/anonymize",
   ];
 }
 

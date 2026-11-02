@@ -300,6 +300,15 @@
         }
       }
     },
+    "concernRouting": {
+      "type": "object",
+      "properties": {
+        "officerCategoryId": { "type": "string" },
+        "officerMentionRole": { "$ref": "#/definitions/stringArray" },
+        "moderationCategoryId": { "type": "string" },
+        "moderationMentionRole": { "$ref": "#/definitions/stringArray" }
+      }
+    },
 
     "updateNotifications": {
       "$ref": "#/definitions/customBoolean",

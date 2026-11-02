@@ -59,6 +59,11 @@
  * @property {string} [categoryAutomation.newThread]
  * @property {object} [categoryAutomation.newThreadFromServer]
  * @property {object} [categoryAutomation.newThreadFromGuild]
+ * @property {object} [concernRouting] Routes new DMs after a concern-type prompt
+ * @property {string} [concernRouting.officerCategoryId]
+ * @property {array} [concernRouting.officerMentionRole]
+ * @property {string} [concernRouting.moderationCategoryId]
+ * @property {array} [concernRouting.moderationMentionRole]
  * @property {boolean} [updateNotifications=true]
  * @property {boolean} [updateNotificationsForBetaVersions=false]
  * @property {array} [plugins=[]]
