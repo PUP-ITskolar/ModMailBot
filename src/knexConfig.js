@@ -24,6 +24,18 @@ if (config.dbType === "sqlite") {
       ...config.mysqlOptions,
     },
   };
+} else if (config.dbType === "postgres") {
+  const host = config.postgresOptions.host || "localhost";
+  const port = config.postgresOptions.port || 5432;
+  const postgresStr = `${config.postgresOptions.user}@${host}:${port}/${config.postgresOptions.database}`;
+  console.log(`Using a PostgreSQL database:\n  ${postgresStr}`);
+
+  knexOptions = {
+    client: "pg",
+    connection: {
+      ...config.postgresOptions,
+    },
+  };
 }
 
 module.exports = {

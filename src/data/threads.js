@@ -415,7 +415,8 @@ async function getClosedThreadCountByUserId(userId) {
   const row = await knex("threads")
     .where("status", THREAD_STATUS.CLOSED)
     .where("user_id", userId)
-    .first(knex.raw("COUNT(id) AS thread_count"));
+    .count({thread_count: "id"})
+    .first();
 
   return parseInt(row.thread_count, 10);
 }

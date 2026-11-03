@@ -513,7 +513,8 @@
     "dbType": {
       "anyOf": [
         { "const": "sqlite" },
-        { "const": "mysql" }
+        { "const": "mysql" },
+        { "const": "postgres" }
       ],
       "default": "sqlite"
     },
@@ -549,6 +550,30 @@
           "type": "string"
         },
         "timezone": {
+          "type": "string"
+        }
+      },
+      "required": ["host", "port", "user", "password", "database"]
+    },
+
+    "postgresOptions": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "string",
+          "default": "localhost"
+        },
+        "port": {
+          "type": "number",
+          "default": "5432"
+        },
+        "user": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "database": {
           "type": "string"
         }
       },
@@ -598,6 +623,19 @@
       },
       "then": {
         "required": ["mysqlOptions"]
+      }
+    },
+    {
+      "$comment": "Make postgresOptions required if dbType is set to 'postgres'",
+      "if": {
+        "properties": {
+          "dbType": {
+            "const": "postgres"
+          }
+        }
+      },
+      "then": {
+        "required": ["postgresOptions"]
       }
     }
   ]

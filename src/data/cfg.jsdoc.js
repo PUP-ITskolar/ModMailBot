@@ -112,4 +112,10 @@
  * @property {string} mysqlOptions.password
  * @property {string} mysqlOptions.database
  * @property {string} [mysqlOptions.timezone]
+ * @property {object} [postgresOptions]
+ * @property {string} postgresOptions.host
+ * @property {number} postgresOptions.port
+ * @property {string} postgresOptions.user
+ * @property {string} postgresOptions.password
+ * @property {string} postgresOptions.database
  */

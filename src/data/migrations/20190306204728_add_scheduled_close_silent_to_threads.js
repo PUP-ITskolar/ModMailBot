@@ -1,6 +1,6 @@
 exports.up = async function(knex, Promise) {
   await knex.schema.table("threads", table => {
-    table.integer("scheduled_close_silent").nullable().after("scheduled_close_name");
+    table.integer("scheduled_close_silent").nullable();
   });
 };
 

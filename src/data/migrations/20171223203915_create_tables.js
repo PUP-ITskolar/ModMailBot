@@ -18,7 +18,11 @@ exports.up = async function(knex, Promise) {
       table.integer("message_type").unsigned().notNullable();
       table.string("user_id", 20).nullable();
       table.string("user_name", 128).notNullable();
-      table.mediumtext("body").notNullable();
+      if (knex.client.config.client === "pg") {
+        table.text("body").notNullable();
+      } else {
+        table.mediumtext("body").notNullable();
+      }
       table.integer("is_anonymous").unsigned().notNullable();
       table.string("dm_message_id", 20).nullable().unique();
       table.dateTime("created_at").notNullable().index();

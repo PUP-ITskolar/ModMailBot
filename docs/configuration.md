@@ -528,6 +528,7 @@ extraIntents[] = guildMembers
 Specifies the type of database to use. Valid options:
 * `sqlite` (see also [sqliteOptions](#sqliteOptions) below)
 * `mysql` (see also [mysqlOptions](#mysqlOptions) below)
+* `postgres` (see also [postgresOptions](#postgresOptions) below)
 
 Other databases are *not* currently supported.
 
@@ -558,6 +559,27 @@ Required if using `mysql` for `dbType`. Password for the MySQL user specified ab
 ##### mysqlOptions.database
 **Default:** *None*  
 Required if using `mysql` for `dbType`. Name of the MySQL database to use.
+
+#### postgresOptions
+Object with PostgreSQL-specific options
+
+##### postgresOptions.host
+**Default:** `localhost`
+
+##### postgresOptions.port
+**Default:** `5432`
+
+##### postgresOptions.user
+**Default:** *None*
+Required if using `postgres` for `dbType`. PostgreSQL user to connect with.
+
+##### postgresOptions.password
+**Default:** *None*
+Required if using `postgres` for `dbType`. Password for the PostgreSQL user specified above.
+
+##### postgresOptions.database
+**Default:** *None*
+Required if using `postgres` for `dbType`. Name of the PostgreSQL database to use.
 
 ## config.ini vs config.json
 Earlier versions of the bot instructed you to create a `config.json` instead of a `config.ini`.
