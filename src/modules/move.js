@@ -12,6 +12,37 @@ module.exports = ({ bot, knex, config, commands }) => {
     concernRouting.moderationCategoryId,
   ]);
 
+  bot.moveConcernThread = async thread => {
+    const channel = await getOrFetchChannel(bot, thread.channel_id);
+    const targetCategoryId = channel.parentID === concernRouting.officerCategoryId
+      ? concernRouting.moderationCategoryId
+      : channel.parentID === concernRouting.moderationCategoryId
+        ? concernRouting.officerCategoryId
+        : null;
+    const targetCategory = channel.guild.channels.get(targetCategoryId);
+
+    if (! targetCategory) {
+      throw new Error("This thread is not in a configured concern category.");
+    }
+
+    await bot.editChannel(thread.channel_id, { parentID: targetCategory.id });
+
+    if (config.syncPermissionsOnMove) {
+      const permissionOverwrites = Array.from(targetCategory.permissionOverwrites.map(ow => ({
+        id: ow.id,
+        type: ow.type,
+        allow: ow.allow,
+        deny: ow.deny,
+      })));
+      await bot.requestHandler.request("PATCH", Routes.channel(thread.channel_id), true, {
+        permission_overwrites: permissionOverwrites,
+      });
+    }
+
+    await thread.postSystemMessage(`Thread moved to ${targetCategory.name.toUpperCase()}`);
+    return targetCategory;
+  };
+
   commands.addInboxThreadCommand("move", "[category:string$]", async (msg, args, thread) => {
     if (! concernRouting
       || ! concernRouting.officerCategoryId

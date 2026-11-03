@@ -6,7 +6,7 @@ COPY package.json package-lock.json ./
 RUN apt-get update \
   && apt-get install --yes --no-install-recommends python3 make g++ \
   && rm -rf /var/lib/apt/lists/* \
-  && npm ci --omit=dev --build-from-source=sqlite3
+  && npm_config_build_from_source=true npm ci --omit=dev
 
 FROM node:24-bookworm-slim
 

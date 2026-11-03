@@ -59,7 +59,7 @@
  * @property {string} [categoryAutomation.newThread]
  * @property {object} [categoryAutomation.newThreadFromServer]
  * @property {object} [categoryAutomation.newThreadFromGuild]
- * @property {object} [concernRouting] Routes new DMs after a concern-type prompt
+ * @property {object} [concernRouting] Routes threads opened from the /concerns panel or DM prompt
  * @property {string} [concernRouting.officerCategoryId]
  * @property {array} [concernRouting.officerMentionRole]
  * @property {string} [concernRouting.moderationCategoryId]

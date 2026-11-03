@@ -65,6 +65,17 @@ module.exports = ({ bot, knex, config, commands }) => {
     utils.postLog(body);
   }
 
+  bot.closeThreadByStaff = async (thread, staffUser) => {
+    if (config.closeMessage) {
+      const closeMessage = utils.readMultilineConfigValue(config.closeMessage);
+      await thread.sendSystemMessageToUser(closeMessage).catch(() => {});
+    }
+
+    await thread.close(false, false);
+    const closedBy = config.useDisplaynames ? staffUser.globalName || staffUser.username : staffUser.username;
+    await sendCloseNotification(thread, `Modmail thread #${thread.thread_number} was closed by ${closedBy} (${staffUser.id})`);
+  };
+
   // Check for threads that are scheduled to be closed and close them
   async function applyScheduledCloses() {
     const threadsToBeClosed = await threads.getThreadsThatShouldBeClosed();
@@ -166,7 +177,8 @@ module.exports = ({ bot, knex, config, commands }) => {
       }
 
       // Regular close
-      closedBy = config.useDisplaynames ? msg.author.globalName || msg.author.username : msg.author.username;
+      await bot.closeThreadByStaff(thread, msg.author);
+      return;
     }
 
     // Send close message (unless suppressed with a silent close)

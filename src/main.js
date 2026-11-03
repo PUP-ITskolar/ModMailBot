@@ -10,6 +10,7 @@ const { formatters } = require("./formatters")
 const { createCommandManager } = require("./commands");
 const { getPluginAPI, installPlugins, loadPlugins } = require("./plugins");
 const ThreadMessage = require("./data/ThreadMessage");
+const { postStaffPanel } = require("./modules/concerns");
 
 const blocked = require("./data/blocked");
 const threads = require("./data/threads");
@@ -216,6 +217,7 @@ function initBaseMessageHandlers() {
         });
         if (thread && initialMessage) {
           await thread.receiveUserReply(initialMessage);
+          await postStaffPanel(thread);
           skipCurrentMessage = isRouteSelection;
         }
       }
@@ -402,6 +404,7 @@ function getBasePlugins() {
     "file:./src/modules/typingProxy",
     "file:./src/modules/version",
     "file:./src/modules/newthread",
+    "file:./src/modules/concerns",
     "file:./src/modules/id",
     "file:./src/modules/alert",
     "file:./src/modules/joinLeaveNotification",
