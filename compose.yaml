@@ -1,11 +1,16 @@
+networks:
+  network:
+    external: true
+    name: home-server_shared_infra_net
+
 services:
   modmail:
     build: .
     restart: unless-stopped
-    ports:
-      - "${MODMAIL_PORT:-8890}:8890"
     volumes:
       - ./config.ini:/app/config.ini:ro
       - ./db:/app/db
       - ./logs:/app/logs
       - ./attachments:/app/attachments
+    networks:
+      network:
